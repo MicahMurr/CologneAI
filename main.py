@@ -2,8 +2,8 @@ import ollama
 from supabase import create_client, Client
 
 # 1. Supabase Connection (The Vault)
-url = "https://xatsjhkqgazqowsyjbff.supabase.co"
-key = "sb_secret_Ll1tYlxJ5bNQ-t-2s7CotA_CRfJeJXr" # Put your Supabase secret key here!
+url = ""
+key = "" # Put your Supabase secret key here!
 supabase: Client = create_client(url, key)
 
 def fetch_and_analyze():
