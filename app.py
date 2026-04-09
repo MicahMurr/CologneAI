@@ -10,7 +10,7 @@ gemini_key = st.secrets["GEMINI_KEY"]
 
 supabase: Client = create_client(url, key)
 genai.configure(api_key=gemini_key)
-model = genai.GenerativeModel('gemini-1.5-flash')
+model = genai.GenerativeModel('gemini-3-flash')
 
 # 2. Website Header
 st.title("👃 Cologne Search")
