@@ -29,7 +29,7 @@ if st.button("Search"):
     ai_response = client.models.generate_content(
         model='gemini-2.0-flash',  # <-- The actual real-world model name!
         contents=prompt
-    
+    )
 
     
     st.success(ai_response.text)
