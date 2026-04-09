@@ -6,7 +6,7 @@ from supabase import create_client, Client
 url = "https://xatsjhkqgazqowsyjbff.supabase.co"
 # We'll set these up in the Streamlit Dashboard later
 key = st.secrets["-t-2s7CotA_CRfJeJXr"]
-gemini_key = st.secrets[""]
+gemini_key = st.secrets["AIzaSyBqp1CAE1lOqypwH0kFwdmr71RUzmGTGdc"]
 
 supabase: Client = create_client(url, key)
 genai.configure(api_key=gemini_key)
