@@ -22,7 +22,13 @@ cologne_list = [f"{c['Name']} by {c['Brand']}" for c in response.data]
 # 4. UI logic
 user_vibe = st.text_input("What's the vibe?")
 
-if st.button("Search"):
-    prompt = f"Expertly recommend one cologne from this list: {cologne_list} for the vibe: {user_vibe}."
-    ai_response = model.generate_content(prompt)
+if st.button("Search"):                                                  
+    prompt = f"Expertly recommend one cologne from this list: {cologne_list}" # (Keep your existing prompt line here)
+    
+    # NEW CODE FOR LINE 27: Use 'client' instead of 'model'
+    ai_response = client.models.generate_content(
+        model='gemini-3-flash',
+        contents=prompt
+    )
+    
     st.success(ai_response.text)
