@@ -1,5 +1,5 @@
 import streamlit as st
-import google.generativeai as genai
+from google import genai
 from supabase import create_client, Client
 
 # 1. Setup Connections (Using Streamlit Secrets for safety!)
