@@ -70,7 +70,7 @@ if st.button("Find My Signature Scent"):
             st.write(ai_response.text)
             
         except Exception as e:
-            st.error(f"Something went wrong with the AI: {e}")vibe = st.selectbox("What is the vibe?", ["Date Night", "Office/Professional", "Casual Everyday", "Loud & Noticed", "Fresh & Clean"])
+            st.error(f"Something went wrong with the AI: {e}")
 longevity = st.selectbox("How long should it last? (Longevity)", ["Moderate (4-6 hours)", "Long-lasting (8+ hours)", "Eternal (12+ hours)"])
 projection = st.selectbox("How loud should it be? (Projection)", ["Intimate (Skin scent)", "Moderate (Arm's length)", "Strong (Leaves a trail)", "Beast Mode (Fills the room)"])
 
