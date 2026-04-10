@@ -30,7 +30,7 @@ if st.button("Search"):
         model='gemini-1.5-flash', 
         contents=prompt
     )
-    )
+    
 
     
     st.success(ai_response.text)
