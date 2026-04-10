@@ -32,11 +32,16 @@ st.write("Take the quiz below, and our AI Sommelier will find your perfect match
 
 st.subheader("Tell us what you are looking for:")
 
-# The Inputs (Cleaned up, no duplicates)
+# The Inputs (Vibe is text, Projection is a dropdown)
 season = st.selectbox("What season is this for?", ["Summer", "Winter", "Spring", "Fall", "Year-round"])
-vibe = st.selectbox("What is the vibe?", ["Date Night", "Office/Professional", "Casual Everyday", "Loud & Noticed", "Fresh & Clean"])
+
+# CHANGED: Vibe is now a free-form text box!
+vibe = st.text_input("What is the exact vibe?", placeholder="e.g. Dark and mysterious, fresh out the shower, office boss...")
+
 longevity = st.selectbox("How long should it last? (Longevity)", ["Moderate (4-6 hours)", "Long-lasting (8+ hours)", "Eternal (12+ hours)"])
-projection = st.text_input("How loud should it be? (Projection)", placeholder="e.g. Skin scent, beast mode, fills the room...")
+
+# CHANGED: Projection is back to a clean dropdown list!
+projection = st.selectbox("How loud should it be? (Projection)", ["Intimate (Skin scent)", "Moderate (Arm's length)", "Strong (Leaves a trail)", "Beast Mode (Fills the room)"])
 
 # --- 5. THE SEARCH ENGINE ---
 if st.button("Find My Signature Scent"):
