@@ -26,11 +26,11 @@ if st.button("Search"):
     prompt = f"Expertly recommend one cologne from this list: {cologne_list}" # (Keep your existing prompt line here)
     
     # NEW CODE FOR LINE 27: Use 'client' instead of 'model'
-ai_response = client.models.generate_content(
+    ai_response = client.models.generate_content(
         model='gemini-2.5-flash', 
         contents=prompt
     )
     
 
     
-    st.success(ai_response.text)
+st.success(ai_response.text)
