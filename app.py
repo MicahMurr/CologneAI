@@ -27,7 +27,7 @@ if st.button("Search"):
     
     # NEW CODE FOR LINE 27: Use 'client' instead of 'model'
     ai_response = client.models.generate_content(
-        model='gemini-1.5-flash', 
+        model='gemini-1.5-flash-latest',  # <-- Added "-latest" here
         contents=prompt
     )
     
