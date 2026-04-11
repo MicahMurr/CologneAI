@@ -211,8 +211,19 @@ with tab3:
     st.markdown("**Clone / Inspiration:** Crafted by brands (Lattafa, Armaf) to mimic expensive Niche or Designer fragrances at a fraction of the cost.")
 
     st.divider()
+    
+    st.markdown("### 🧬 Fragrance Families (Accords)")
+    st.markdown("**Gourmand:** Scents that smell 'edible.' Think vanilla, chocolate, coffee, caramel, and honey. Very popular in winter and for date nights.")
+    st.markdown("**Fougère (Fern):** The classic 'barbershop' smell. Clean, green, shaving-cream vibes. Usually features lavender and oakmoss. Extremely masculine and office-safe.")
+    st.markdown("**Aquatic / Marine:** Smells like the ocean, sea salt, or a fresh shower. The ultimate summer scent profile.")
+    st.markdown("**Amber (Oriental):** Warm, spicy, and exotic. Features resins, cinnamon, cardamom, and incense. Heavy and mysterious.")
 
-    st.markdown("### 📖 Insider Terminology")
-    st.markdown("**Projection (Sillage):** How far the scent travels off your skin. 'Intimate' means someone has to hug you to smell it. 'Beast Mode' means it fills the room.")
+    st.divider()
+
+    st.markdown("### 🤫 Pro Terminology & Secrets")
+    st.markdown("**Sillage (See-yazh):** Often confused with projection. Projection is how far the scent pushes off you when standing still. *Sillage* is the invisible scent trail you leave behind in the air when you walk past someone.")
+    st.markdown("**Maceration (Maturation):** Letting a cologne 'sit.' Sometimes, brand-new bottles (especially Clones) smell harsh on day one. Spraying it 5-10 times and leaving it in a dark drawer for a month allows the oils to mix and smooth out.")
     st.markdown("**Blind Buy:** Buying a fragrance without ever smelling it first (which our AI is here to help you do safely!).")
+    st.markdown("**Reformulation:** When a brand secretly changes the recipe of a classic cologne to comply with chemical laws or save money. This is why a bottle from 2015 might last longer than a bottle bought today.")
     st.markdown("**Flanker:** A sequel or spin-off of a popular cologne (e.g., *Bleu de Chanel* has an EDT, EDP, and Parfum version).")
+    st.markdown("**Pulse Points:** The best places to spray cologne because the body heat helps push the scent into the air (Neck, behind the ears, inner wrists, and inner elbows).")
