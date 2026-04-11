@@ -66,14 +66,26 @@ def load_cologne_list():
 cologne_list = load_cologne_list()
 
 # --- 5. THE QUIZ UI ---
+# --- 5. THE QUIZ UI ---
 st.title("Find Your Signature Scent 💨")
 st.write("Take the quiz below, and our AI Sommelier will find your perfect match.")
 
+st.divider() # Adds a clean horizontal line
+
 st.subheader("Tell us what you are looking for:")
-season = st.selectbox("What season is this for?", ["Summer", "Winter", "Spring", "Fall", "Year-round"])
-vibe = st.text_input("What is the exact vibe?", placeholder="e.g. Dark and mysterious, fresh out the shower, office boss...")
-longevity = st.selectbox("How long should it last? (Longevity)", ["Moderate (4-6 hours)", "Long-lasting (8+ hours)", "Eternal (12+ hours)"])
-projection = st.selectbox("How loud should it be? (Projection)", ["Intimate (Skin scent)", "Moderate (Arm's length)", "Strong (Leaves a trail)", "Beast Mode (Fills the room)"])
+
+# Create a sleek 2x2 grid layout!
+col1, col2 = st.columns(2)
+
+with col1:
+    season = st.selectbox("What season is this for?", ["Summer", "Winter", "Spring", "Fall", "Year-round"])
+    longevity = st.selectbox("How long should it last? (Longevity)", ["Moderate (4-6 hours)", "Long-lasting (8+ hours)", "Eternal (12+ hours)"])
+
+with col2:
+    vibe = st.text_input("What is the exact vibe?", placeholder="e.g. Dark, mysterious, office boss...")
+    projection = st.selectbox("How loud should it be? (Projection)", ["Intimate (Skin scent)", "Moderate (Arm's length)", "Strong (Leaves a trail)", "Beast Mode (Fills the room)"])
+
+st.divider() # Adds another line before the button
 
 # --- 6. THE SEARCH ENGINE ---
 if st.button("Find My Signature Scent"):
