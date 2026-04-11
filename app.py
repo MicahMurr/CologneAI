@@ -16,6 +16,7 @@ except KeyError:
     st.stop()
 
 # --- 3. THE SCRAPER TOOL ---
+# --- 3. THE SCRAPER TOOL ---
 def get_cheapest_price(cologne_name):
     url = "https://serpapi.com/search"
     params = {
@@ -25,18 +26,34 @@ def get_cheapest_price(cologne_name):
         "gl": "us",
         "api_key": serpapi_key
     }
+    
+    # We build a bulletproof fallback link just in case!
+    safe_name = cologne_name.replace(" ", "+")
+    fallback_link = f"https://www.google.com/search?tbm=shop&q={safe_name}"
+    
     try:
         response = requests.get(url, params=params)
         data = response.json()
+        
         if "shopping_results" in data and len(data["shopping_results"]) > 0:
             first_result = data["shopping_results"][0]
             price = first_result.get("price", "N/A")
-            link = first_result.get("link", "#")
             source = first_result.get("source", "N/A")
+            
+            # THE FIX: A smart link hunter
+            if "link" in first_result:
+                link = first_result["link"]
+            elif "product_link" in first_result:
+                link = first_result["product_link"]
+            else:
+                link = fallback_link
+                
             return price, source, link
+            
     except Exception:
-        pass
-    return "No price found", "N/A", "#"
+        pass # If anything crashes, it will just drop down to the return statement below
+        
+    return "No price found", "N/A", fallback_link
 
 # --- 4. LOAD YOUR DATABASE ---
 @st.cache_data
