@@ -43,16 +43,23 @@ def get_price_comparison(cologne_name):
         pass
     return [{"price": "Check Price", "store": "Google Shopping", "link": fallback_link}]
 
-# --- 4. LOAD DATABASE (NOW WITH RATINGS) ---
+# --- 4. LOAD DATABASE (FIXED HEADERS) ---
 @st.cache_data
 def load_cologne_data():
     try:
+        # Loading your specific file
         df = pd.read_csv("Cologne List_rows.csv")
-        # Creating a rich string for the AI to read: "Brand Name (Rating: 4.5, Votes: 1200)"
-        df['AI_Info'] = df['Brand'] + " " + df['Perfume'] + " (Rating: " + df['Rating'].astype(str) + ", Votes: " + df['Votes'].astype(str) + ")"
+        
+        # We build the AI info string using your exact headers: Perfume, Brand, Votes, Rating Value
+        df['AI_Info'] = (
+            df['Brand'].astype(str) + " " + 
+            df['Perfume'].astype(str) + 
+            " (Rating: " + df['Rating Value'].astype(str) + 
+            ", Votes: " + df['Votes'].astype(str) + ")"
+        )
         return df['AI_Info'].tolist()
     except Exception as e:
-        st.error(f"🚨 Error loading CSV: {e}")
+        st.error(f"🚨 Error loading CSV! Check your column names. Details: {e}")
         st.stop()
 
 cologne_info_list = load_cologne_data()
@@ -77,17 +84,16 @@ st.divider()
 # --- 6. AI & RESULTS ---
 if st.button("Find My Match & Best Prices", use_container_width=True):
     
-    # We now tell the AI to look at the ratings we provided!
     prompt = f"""
     You are a luxury fragrance expert. 
     User Preferences:
     - Season: {season} | Vibe: {vibe} | Longevity: {longevity} | Projection: {projection} | Budget: {budget} | Category: {frag_type}
     
-    Choose ONE from this list. IMPORTANT: Prioritize colognes with the HIGHEST Rating and HIGHEST Vote counts that fit the vibe.
+    Choose ONE from this list. IMPORTANT: Prioritize colognes with the HIGHEST Rating and HIGHEST Vote counts.
     List: {cologne_info_list}
     
     RULES:
-    1. Line 1: EXACT NAME ONLY (Exclude the rating/votes from the final output).
+    1. Line 1: EXACT NAME ONLY (Brand + Perfume name only).
     2. Line 2+: Stylish explanation of why it fits the vibe, category, and why its high rating makes it a top choice.
     """
     
