@@ -76,7 +76,6 @@ tab1, tab2, tab3 = st.tabs(["🎯 The AI Quiz", "🔍 Direct Search", "📚 Frag
 # TAB 1: THE STEP-BY-STEP QUIZ
 # ==========================================
 with tab1:
-    # Notice we removed Unisex from the Gender options!
     questions = [
         {"key": "Gender", "title": "Who is this fragrance for?", "type": "radio", "options": ["Men", "Women"]},
         {"key": "Season", "title": "What season are you shopping for?", "type": "select", "options": ["Summer", "Winter", "Spring", "Fall", "Year-round"]},
@@ -189,17 +188,31 @@ with tab2:
 # TAB 3: THE GLOSSARY
 # ==========================================
 with tab3:
-    st.subheader("Fragrance 101")
+    st.subheader("The Sommelier's Glossary")
+    st.write("Everything you need to know to shop like an expert.")
     
-    st.markdown("### 🏛️ Fragrance Types")
-    st.markdown("**Designer:** Fragrances created by major fashion houses (Dior, Chanel, Versace). They are designed to be mass-appealing, high quality, and crowd-pleasers.")
-    st.markdown("**Niche:** Fragrances created by specialized perfume houses (Creed, Parfums de Marly, Xerjoff). They often use higher quality, rare ingredients and create more unique, artistic, or daring scent profiles. They are usually more expensive.")
-    st.markdown("**Clone / Inspiration:** Fragrances crafted by brands (Lattafa, Armaf, Dossier) specifically to mimic the scent of expensive Niche or Designer fragrances at a fraction of the cost.")
-    
+    st.markdown("### 💧 Concentration Levels (How long it lasts)")
+    st.markdown("**Eau de Toilette (EDT):** The standard. Lighter and fresher. Usually lasts 3 to 5 hours. Great for the office or warm weather.")
+    st.markdown("**Eau de Parfum (EDP):** The sweet spot. Higher oil concentration, meaning it projects better and usually lasts 6 to 8 hours. The standard for luxury scents.")
+    st.markdown("**Parfum / Extrait de Parfum:** The heaviest hitter. Highest oil concentration. It sits a bit closer to the skin but lasts 10 to 24+ hours. Very rich and dense.")
+
     st.divider()
-    
-    st.markdown("### 🔊 Projection (Sillage)")
-    st.markdown("**Intimate:** Sits close to the skin. Someone has to lean in to smell you (perfect for dates or strict offices).")
-    st.markdown("**Moderate:** Projects about an arm's length away. Leaves a polite, subtle scent trail.")
-    st.markdown("**Strong:** Leaves a noticeable trail when you walk by. People will smell you when you enter a room.")
-    st.markdown("**Beast Mode:** Extremely powerful. Fills the entire room and commands attention. Apply with caution!")
+
+    st.markdown("### 🎼 The Fragrance Pyramid (How it changes)")
+    st.markdown("**Top Notes (The Opening):** What you smell in the first 15 minutes. Usually fresh, citrusy, or sharp. *Never buy a cologne based purely on the top note!*")
+    st.markdown("**Heart Notes (The Core):** What it smells like for the next 2 to 4 hours. This is the true 'personality' of the scent.")
+    st.markdown("**Base Notes (The Dry Down):** The foundation. These are the heavy woods, musks, and vanillas that linger on your skin for the rest of the day.")
+
+    st.divider()
+
+    st.markdown("### 🏛️ Fragrance Categories")
+    st.markdown("**Designer:** Created by major fashion houses (Dior, Chanel). Mass-appealing, high quality, and designed to get compliments.")
+    st.markdown("**Niche:** Created by specialized perfume houses (Creed, Parfums de Marly). They use rare ingredients and take artistic risks. More expensive and unique.")
+    st.markdown("**Clone / Inspiration:** Crafted by brands (Lattafa, Armaf) to mimic expensive Niche or Designer fragrances at a fraction of the cost.")
+
+    st.divider()
+
+    st.markdown("### 📖 Insider Terminology")
+    st.markdown("**Projection (Sillage):** How far the scent travels off your skin. 'Intimate' means someone has to hug you to smell it. 'Beast Mode' means it fills the room.")
+    st.markdown("**Blind Buy:** Buying a fragrance without ever smelling it first (which our AI is here to help you do safely!).")
+    st.markdown("**Flanker:** A sequel or spin-off of a popular cologne (e.g., *Bleu de Chanel* has an EDT, EDP, and Parfum version).")
