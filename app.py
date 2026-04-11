@@ -6,7 +6,6 @@ import requests
 # --- 1. PAGE SETUP ---
 st.set_page_config(page_title="Cologne AI", page_icon="💨", layout="centered")
 
-# Initialize the "Memory" for the step-by-step quiz
 if "quiz_step" not in st.session_state:
     st.session_state.quiz_step = 0
 if "preferences" not in st.session_state:
@@ -71,16 +70,15 @@ cologne_info_list = load_cologne_data()
 st.title("Cologne Search AI 💨")
 st.write("Find your signature scent and the best live prices.")
 
-# Create the 3 main navigation tabs
 tab1, tab2, tab3 = st.tabs(["🎯 The AI Quiz", "🔍 Direct Search", "📚 Fragrance 101"])
 
 # ==========================================
 # TAB 1: THE STEP-BY-STEP QUIZ
 # ==========================================
 with tab1:
-    # A list of all our questions
+    # Notice we removed Unisex from the Gender options!
     questions = [
-        {"key": "Gender", "title": "Who is this fragrance for?", "type": "radio", "options": ["Men", "Women", "Unisex / Anyone"]},
+        {"key": "Gender", "title": "Who is this fragrance for?", "type": "radio", "options": ["Men", "Women"]},
         {"key": "Season", "title": "What season are you shopping for?", "type": "select", "options": ["Summer", "Winter", "Spring", "Fall", "Year-round"]},
         {"key": "Budget", "title": "What is your maximum budget?", "type": "select", "options": ["Any Price", "Under $50", "$50 - $100", "$100 - $200", "$200+ (Luxury)"]},
         {"key": "Type", "title": "What type of fragrance?", "type": "select", "options": ["Any", "Designer", "Niche", "Clone / Inspiration"]},
@@ -90,13 +88,11 @@ with tab1:
 
     step = st.session_state.quiz_step
 
-    # If they haven't finished the quiz yet...
     if step < len(questions):
         q = questions[step]
         st.subheader(f"Step {step + 1} of {len(questions)}")
         st.write(f"### {q['title']}")
         
-        # Draw the correct type of input
         if q["type"] == "radio":
             answer = st.radio("", q["options"], key=f"q_{step}")
         elif q["type"] == "select":
@@ -107,11 +103,10 @@ with tab1:
         st.divider()
         col1, col2 = st.columns(2)
         
-        # Logic for buttons
         if step == len(questions) - 1:
             if col1.button("Finish & Find Match 🚀", use_container_width=True):
                 st.session_state.preferences[q["key"]] = answer
-                st.session_state.quiz_step = 99 # 99 means "Go to results"
+                st.session_state.quiz_step = 99
                 st.rerun()
         else:
             if col1.button("Next ➡️", use_container_width=True):
@@ -123,11 +118,9 @@ with tab1:
                 st.session_state.quiz_step = 99
                 st.rerun()
 
-    # If they finished or skipped...
     elif step == 99:
         st.subheader("Your Custom Match")
         
-        # Combine whatever answers they managed to give us into a clean list for the AI
         prefs_text = "\n".join([f"- {k}: {v}" for k, v in st.session_state.preferences.items()])
         
         prompt = f"""
@@ -139,8 +132,9 @@ with tab1:
         List: {cologne_info_list}
         
         RULES:
-        1. Line 1: EXACT NAME ONLY (Brand + Perfume name only).
-        2. Line 2+: Stylish explanation of why it fits their specific preferences.
+        1. GENDER RULE: If the user selected 'Men', you may choose men's fragrances OR unisex fragrances that lean masculine. If they selected 'Women', choose women's fragrances OR unisex fragrances that lean feminine. 
+        2. Line 1: EXACT NAME ONLY (Brand + Perfume name only).
+        3. Line 2+: Stylish explanation of why it fits their preferences and how the notes match the gender request.
         """
         
         with st.spinner("Consulting the Sommelier..."):
@@ -181,7 +175,6 @@ with tab2:
     search_selection = st.selectbox("Search your database:", cologne_info_list)
     
     if st.button("Check Live Prices 🛒"):
-        # Slice off the "(Rating: 4.5)" part so the search engine only gets the name
         clean_name = search_selection.split(" (Rating:")[0]
         
         with st.spinner(f"Searching stores for {clean_name}..."):
