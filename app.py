@@ -15,9 +15,7 @@ except KeyError:
     st.error("🚨 API Keys missing! Please make sure both GEMINI_KEY and SERPAPI_KEY are in Streamlit Secrets.")
     st.stop()
 
-# --- 3. THE SCRAPER TOOL ---
-# --- 3. THE SCRAPER TOOL ---
-# --- 3. THE SCRAPER TOOL ---
+# --- 3. THE BULLETPROOF SCRAPER ---
 def get_cheapest_price(cologne_name):
     url = "https://serpapi.com/search"
     params = {
@@ -28,6 +26,7 @@ def get_cheapest_price(cologne_name):
         "api_key": serpapi_key
     }
     
+    # A custom fallback link just in case Google completely fails
     safe_name = cologne_name.replace(" ", "+")
     fallback_link = f"https://www.google.com/search?tbm=shop&q={safe_name}"
     
@@ -35,6 +34,96 @@ def get_cheapest_price(cologne_name):
         response = requests.get(url, params=params)
         data = response.json()
         
+        if "shopping_results" in data:
+            # Check EVERY result until we find one with a real price and a direct store link
+            for result in data["shopping_results"]:
+                price = result.get("price")
+                source = result.get("source")
+                
+                # Try to get the direct link, or the product link
+                link = result.get("link") or result.get("product_link")
+                
+                # Only return it if it has all 3!
+                if price and source and link:
+                    return price, source, link
+                    
+    except Exception as e:
+        pass # If the API crashes, ignore it and use the fallback
+        
+    return "No price found", "N/A", fallback_link
+
+# --- 4. LOAD YOUR DATABASE ---
+@st.cache_data
+def load_cologne_list():
+    try:
+        df = pd.read_csv("Cologne List_rows.csv")
+        df['Full_Name'] = df['Brand'].astype(str) + " " + df['Name'].astype(str)
+        return df['Full_Name'].tolist()
+    except FileNotFoundError:
+        st.error("🚨 Could not find 'Cologne List_rows.csv'. Make sure it is uploaded to your GitHub repository!")
+        st.stop()
+
+cologne_list = load_cologne_list()
+
+# --- 5. THE QUIZ UI ---
+st.title("Find Your Signature Scent 💨")
+st.write("Take the quiz below, and our AI Sommelier will find your perfect match.")
+
+st.subheader("Tell us what you are looking for:")
+season = st.selectbox("What season is this for?", ["Summer", "Winter", "Spring", "Fall", "Year-round"])
+vibe = st.text_input("What is the exact vibe?", placeholder="e.g. Dark and mysterious, fresh out the shower, office boss...")
+longevity = st.selectbox("How long should it last? (Longevity)", ["Moderate (4-6 hours)", "Long-lasting (8+ hours)", "Eternal (12+ hours)"])
+projection = st.selectbox("How loud should it be? (Projection)", ["Intimate (Skin scent)", "Moderate (Arm's length)", "Strong (Leaves a trail)", "Beast Mode (Fills the room)"])
+
+# --- 6. THE SEARCH ENGINE ---
+if st.button("Find My Signature Scent"):
+    
+    prompt = f"""
+    You are an expert fragrance sommelier. 
+    I need a specific cologne recommendation from you based on these exact preferences:
+    - Season: {season}
+    - Vibe: {vibe}
+    - Desired Longevity: {longevity}
+    - Desired Projection: {projection}
+    
+    Here is the ONLY list of colognes you are allowed to choose from: 
+    {cologne_list}
+    
+    CRITICAL INSTRUCTION: You must pick exactly ONE fragrance. 
+    Put the EXACT NAME of the cologne on the VERY FIRST LINE of your response by itself. Do not write anything else on line 1.
+    Then, starting on line 2, write a short, exciting paragraph explaining why the notes fit the vibe and performance requests.
+    """
+    
+    with st.spinner("Consulting the fragrance experts..."):
+        try:
+            ai_response = client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt
+            )
+            
+            response_text = ai_response.text.strip()
+            lines = response_text.split("\n")
+            
+            exact_cologne_name = lines[0].strip().replace("*", "") 
+            description = "\n".join(lines[1:]).strip()
+            
+            st.success(f"We found your match: **{exact_cologne_name}**!")
+            st.write(description)
+            
+        except Exception as e:
+            st.error(f"Something went wrong with the AI: {e}")
+            st.stop()
+            
+    with st.spinner("Hunting for the best live price..."):
+        price, store, link = get_cheapest_price(exact_cologne_name)
+        
+        st.subheader("🛒 Live Pricing")
+        if price != "No price found":
+            st.write(f"**Best Price:** {price} at {store}")
+            st.link_button(f"Buy from {store}", link)
+        else:
+            st.write("Could not find a reliable live price. Here is a quick link to search for it:")
+            st.link_button("Search Google Shopping", link)        
         if "shopping_results" in data:
             
             # THE FIX: Loop through the top 5 results to find a valid link!
