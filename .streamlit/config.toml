@@ -1,0 +1,15 @@
+[theme]
+# The primary accent color (Gold) for buttons and sliders
+primaryColor = "#d4af37" 
+
+# The main background color (Deep Charcoal/Black)
+backgroundColor = "#0e1117"
+
+# The secondary background for dropdown boxes and sidebars
+secondaryBackgroundColor = "#1a1c24"
+
+# Text color (Off-white for readability)
+textColor = "#fafafa"
+
+# Font style (Serif gives that high-end fashion magazine look)
+font = "serif"
