@@ -17,6 +17,7 @@ except KeyError:
 
 # --- 3. THE SCRAPER TOOL ---
 # --- 3. THE SCRAPER TOOL ---
+# --- 3. THE SCRAPER TOOL ---
 def get_cheapest_price(cologne_name):
     url = "https://serpapi.com/search"
     params = {
@@ -27,7 +28,6 @@ def get_cheapest_price(cologne_name):
         "api_key": serpapi_key
     }
     
-    # We build a bulletproof fallback link just in case!
     safe_name = cologne_name.replace(" ", "+")
     fallback_link = f"https://www.google.com/search?tbm=shop&q={safe_name}"
     
@@ -35,24 +35,23 @@ def get_cheapest_price(cologne_name):
         response = requests.get(url, params=params)
         data = response.json()
         
-        if "shopping_results" in data and len(data["shopping_results"]) > 0:
-            first_result = data["shopping_results"][0]
-            price = first_result.get("price", "N/A")
-            source = first_result.get("source", "N/A")
+        if "shopping_results" in data:
             
-            # THE FIX: A smart link hunter
-            if "link" in first_result:
-                link = first_result["link"]
-            elif "product_link" in first_result:
-                link = first_result["product_link"]
-            else:
-                link = fallback_link
+            # THE FIX: Loop through the top 5 results to find a valid link!
+            for result in data["shopping_results"][:5]:
+                price = result.get("price", "N/A")
+                source = result.get("source", "N/A")
                 
-            return price, source, link
-            
+                # If this specific result has a real link, grab it and stop looking!
+                if "link" in result:
+                    return price, source, result["link"]
+                elif "product_link" in result:
+                    return price, source, result["product_link"]
+                    
     except Exception:
-        pass # If anything crashes, it will just drop down to the return statement below
+        pass 
         
+    # If it checks all 5 and STILL fails, use the fallback
     return "No price found", "N/A", fallback_link
 
 # --- 4. LOAD YOUR DATABASE ---
