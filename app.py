@@ -20,17 +20,23 @@ except KeyError:
     st.error("🚨 API Keys missing! Add GEMINI_KEY and SERPAPI_KEY to Streamlit Secrets.")
     st.stop()
 
-# --- 3. THE PRICE SCRAPER ---
-def get_price_comparison(cologne_name):
+# --- 3. THE SMART PRICE SCRAPER ---
+# We added a "search_sample" switch to this function!
+def get_price_comparison(cologne_name, search_sample=False):
+    # If they want a sample, we add keywords to the Google search
+    query = f"{cologne_name} sample decant" if search_sample else cologne_name
+    
     url = "https://serpapi.com/search"
     params = {
         "engine": "google_shopping",
-        "q": cologne_name,
+        "q": query,
         "hl": "en",
         "gl": "us",
         "api_key": serpapi_key
     }
-    fallback_link = f"https://www.google.com/search?tbm=shop&q={cologne_name.replace(' ', '+')}"
+    
+    fallback_link = f"https://www.google.com/search?tbm=shop&q={query.replace(' ', '+')}"
+    
     try:
         response = requests.get(url, params=params)
         data = response.json()
@@ -46,6 +52,7 @@ def get_price_comparison(cologne_name):
                 return deals
     except Exception:
         pass
+        
     return [{"price": "Check Price", "store": "Google Shopping", "link": fallback_link}]
 
 # --- 4. LOAD DATABASE ---
@@ -76,12 +83,14 @@ tab1, tab2, tab3 = st.tabs(["🎯 The AI Quiz", "🔍 Direct Search", "📚 Frag
 # TAB 1: THE STEP-BY-STEP QUIZ
 # ==========================================
 with tab1:
+    # Added the "Size" question to the quiz
     questions = [
         {"key": "Gender", "title": "Who is this fragrance for?", "type": "radio", "options": ["Men", "Women"]},
         {"key": "Season", "title": "What season are you shopping for?", "type": "select", "options": ["Summer", "Winter", "Spring", "Fall", "Year-round"]},
-        {"key": "Budget", "title": "What is your maximum budget?", "type": "select", "options": ["Any Price", "Under $50", "$50 - $100", "$100 - $200", "$200+ (Luxury)"]},
         {"key": "Type", "title": "What type of fragrance?", "type": "select", "options": ["Any", "Designer", "Niche", "Clone / Inspiration"]},
         {"key": "Projection", "title": "How loud should it be (Projection)?", "type": "select", "options": ["Intimate", "Moderate", "Strong", "Beast Mode"]},
+        {"key": "Size", "title": "Are you looking to buy a full bottle or a sample to test?", "type": "radio", "options": ["Full Bottle", "Sample / Decant"]},
+        {"key": "Budget", "title": "What is your maximum budget for this size?", "type": "select", "options": ["Any Price", "Under $25", "Under $50", "$50 - $100", "$100+"]},
         {"key": "Vibe", "title": "What is the exact vibe? (Optional)", "type": "text", "placeholder": "e.g. Fresh, woody, dark, office safe..."}
     ]
 
@@ -132,8 +141,9 @@ with tab1:
         
         RULES:
         1. GENDER RULE: If the user selected 'Men', you may choose men's fragrances OR unisex fragrances that lean masculine. If they selected 'Women', choose women's fragrances OR unisex fragrances that lean feminine. 
-        2. Line 1: EXACT NAME ONLY (Brand + Perfume name only).
-        3. Line 2+: Stylish explanation of why it fits their preferences and how the notes match the gender request.
+        2. BUDGET RULE: Ensure the recommendation fits the budget *for the size requested*. A sample of a $300 Niche fragrance will easily fit an "Under $50" budget.
+        3. Line 1: EXACT NAME ONLY (Brand + Perfume name only).
+        4. Line 2+: Stylish explanation of why it fits their preferences.
         """
         
         with st.spinner("Consulting the Sommelier..."):
@@ -147,8 +157,15 @@ with tab1:
                 st.info(description)
                 
                 with st.spinner("Finding the best deals..."):
-                    deals = get_price_comparison(exact_name)
-                    st.write("### 🛒 Live Pricing")
+                    # Check if they asked for a sample, and tell the scraper!
+                    wants_sample = st.session_state.preferences.get("Size") == "Sample / Decant"
+                    deals = get_price_comparison(exact_name, search_sample=wants_sample)
+                    
+                    if wants_sample:
+                        st.write("### 🧪 Best Sample / Decant Prices")
+                    else:
+                        st.write("### 🛒 Best Full Bottle Prices")
+                        
                     for deal in deals:
                         d1, d2, d3 = st.columns([1, 2, 1])
                         with d1: st.write(f"**{deal['price']}**")
@@ -173,11 +190,15 @@ with tab2:
     
     search_selection = st.selectbox("Search your database:", cologne_info_list)
     
+    # NEW: Toggle for Sample vs Full Bottle
+    bottle_size = st.radio("What are you looking for?", ["Full Bottle", "Sample / Decant"], horizontal=True)
+    
     if st.button("Check Live Prices 🛒"):
         clean_name = search_selection.split(" (Rating:")[0]
+        wants_sample = (bottle_size == "Sample / Decant")
         
         with st.spinner(f"Searching stores for {clean_name}..."):
-            deals = get_price_comparison(clean_name)
+            deals = get_price_comparison(clean_name, search_sample=wants_sample)
             for deal in deals:
                 d1, d2, d3 = st.columns([1, 2, 1])
                 with d1: st.write(f"**{deal['price']}**")
@@ -221,6 +242,7 @@ with tab3:
     st.divider()
 
     st.markdown("### 🤫 Pro Terminology & Secrets")
+    st.markdown("**Decant:** A smaller, sample-sized vial (usually 2ml, 5ml, or 10ml) of a luxury fragrance. The perfect way to test an expensive scent without buying a full bottle.")
     st.markdown("**Sillage (See-yazh):** Often confused with projection. Projection is how far the scent pushes off you when standing still. *Sillage* is the invisible scent trail you leave behind in the air when you walk past someone.")
     st.markdown("**Maceration (Maturation):** Letting a cologne 'sit.' Sometimes, brand-new bottles (especially Clones) smell harsh on day one. Spraying it 5-10 times and leaving it in a dark drawer for a month allows the oils to mix and smooth out.")
     st.markdown("**Blind Buy:** Buying a fragrance without ever smelling it first (which our AI is here to help you do safely!).")
