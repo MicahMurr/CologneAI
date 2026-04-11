@@ -111,6 +111,11 @@ if st.button("Find My Signature Scent"):
         st.subheader("🛒 Live Pricing")
         if price != "No price found":
             st.write(f"**Best Price:** {price} at {store}")
-            st.markdown(f"[**Click here to buy it**]({link})", unsafe_allow_html=True)
+            
+            # This prints the raw web address so they can see it
+            st.write(f"**Direct Link:** {link}")
+            
+            # This creates a nice, clickable app button!
+            st.link_button("Buy Now", link)
         else:
             st.write("Could not find a reliable live price on Google Shopping. You might have to hunt for this one!")
