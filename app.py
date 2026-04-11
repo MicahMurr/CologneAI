@@ -4,7 +4,7 @@ import pandas as pd
 import requests
 
 # --- 1. PAGE SETUP ---
-st.set_page_config(page_title="Cologne Finder", page_icon="💨")
+st.set_page_config(page_title="Cologne AI", page_icon="💨", layout="centered")
 
 # --- 2. CONNECT TO GOOGLE & SERPAPI ---
 try:
@@ -12,11 +12,11 @@ try:
     serpapi_key = st.secrets["SERPAPI_KEY"]
     client = genai.Client(api_key=gemini_key)
 except KeyError:
-    st.error("🚨 API Keys missing! Please make sure both GEMINI_KEY and SERPAPI_KEY are in Streamlit Secrets.")
+    st.error("🚨 API Keys missing! Add them to Streamlit Secrets.")
     st.stop()
 
-# --- 3. THE BULLETPROOF SCRAPER ---
-def get_cheapest_price(cologne_name):
+# --- 3. THE PRICE COMPARISON SCRAPER ---
+def get_price_comparison(cologne_name):
     url = "https://serpapi.com/search"
     params = {
         "engine": "google_shopping",
@@ -26,15 +26,108 @@ def get_cheapest_price(cologne_name):
         "api_key": serpapi_key
     }
     
-    # A custom fallback link just in case Google completely fails
-    safe_name = cologne_name.replace(" ", "+")
-    fallback_link = f"https://www.google.com/search?tbm=shop&q={safe_name}"
+    fallback_link = f"https://www.google.com/search?tbm=shop&q={cologne_name.replace(' ', '+')}"
     
     try:
         response = requests.get(url, params=params)
         data = response.json()
         
+        results = []
         if "shopping_results" in data:
+            for result in data["shopping_results"][:3]: # Grab the top 3 deals
+                price = result.get("price")
+                source = result.get("source")
+                link = result.get("link") or result.get("product_link")
+                if price and source and link:
+                    results.append({"price": price, "store": source, "link": link})
+            
+            if results:
+                return results
+                    
+    except Exception:
+        pass
+        
+    return [{"price": "Check Live", "store": "Google Shopping", "link": fallback_link}]
+
+# --- 4. LOAD YOUR DATABASE ---
+@st.cache_data
+def load_cologne_list():
+    try:
+        df = pd.read_csv("Cologne List_rows.csv")
+        df['Full_Name'] = df['Brand'].astype(str) + " " + df['Name'].astype(str)
+        return df['Full_Name'].tolist()
+    except:
+        st.error("🚨 Could not find CSV file.")
+        st.stop()
+
+cologne_list = load_cologne_list()
+
+# --- 5. THE LUXURY UI ---
+st.title("Cologne Search AI 💨")
+st.write("Your personal fragrance sommelier and price tracker.")
+
+st.divider()
+
+st.subheader("Personalize Your Search")
+
+# UI Grid
+col1, col2 = st.columns(2)
+
+with col1:
+    season = st.selectbox("Season", ["Summer", "Winter", "Spring", "Fall", "Year-round"])
+    longevity = st.selectbox("Longevity", ["Moderate", "Long-lasting", "Eternal"])
+    # NEW: Budget Feature
+    budget = st.selectbox("Max Budget", ["Any Price", "Under $50", "$50 - $100", "$100 - $200", "$200+ (Luxury)"])
+
+with col2:
+    vibe = st.text_input("Vibe", placeholder="e.g. Fresh, mysterious, woody...")
+    projection = st.selectbox("Projection", ["Intimate", "Moderate", "Strong", "Beast Mode"])
+
+st.divider()
+
+# --- 6. THE SEARCH ENGINE ---
+if st.button("Find My Match & Best Prices"):
+    
+    prompt = f"""
+    You are a luxury fragrance expert. 
+    User Preferences:
+    - Season: {season} | Vibe: {vibe} | Longevity: {longevity} | Projection: {projection} | Budget: {budget}
+    
+    List to choose from: {cologne_list}
+    
+    INSTRUCTION: Pick ONE fragrance that fits these criteria and the budget.
+    Line 1: EXACT NAME ONLY.
+    Line 2+: Why it's perfect for them.
+    """
+    
+    with st.spinner("Analyzing fragrance notes..."):
+        try:
+            ai_response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
+            lines = ai_response.text.strip().split("\n")
+            exact_name = lines[0].strip().replace("*", "")
+            description = "\n".join(lines[1:]).strip()
+            
+            st.success(f"Match Found: **{exact_name}**")
+            st.write(description)
+            
+        except Exception as e:
+            st.error(f"AI Error: {e}")
+            st.stop()
+            
+    with st.spinner("Finding the best deals..."):
+        deals = get_price_comparison(exact_name)
+        
+        st.subheader("🛒 Best Prices Found")
+        
+        # Display as a clean table or list of buttons
+        for deal in deals:
+            c1, c2, c3 = st.columns([2, 2, 1])
+            with c1:
+                st.write(f"**{deal['price']}**")
+            with c2:
+                st.write(f"at {deal['store']}")
+            with c3:
+                st.link_button("View Deal", deal['link'])        if "shopping_results" in data:
             # Check EVERY result until we find one with a real price and a direct store link
             for result in data["shopping_results"]:
                 price = result.get("price")
