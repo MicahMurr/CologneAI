@@ -48,25 +48,17 @@ def get_price_comparison(cologne_name):
     return [{"price": "Check Price", "store": "Google Shopping", "link": fallback_link}]
 
 # --- 4. LOAD DATABASE ---
-# --- 4. LOAD DATABASE ---
 @st.cache_data
 def load_cologne_list():
     try:
-        # 1. Update the filename to perfume.csv
-        df = pd.read_csv("perfume.csv") 
+        # Loading the specific file you mentioned
+        df = pd.read_csv("Cologne List_rows.csv")
         
-        # 2. Check your columns! 
-        # If your new table has ONE column called 'perfume', use this:
-        if 'perfume' in df.columns:
-            return df['perfume'].astype(str).tolist()
-        
-        # If you still have 'Brand' and 'Name', use this:
-        else:
-            df['Full_Name'] = df['Brand'].astype(str) + " " + df['Name'].astype(str)
-            return df['Full_Name'].tolist()
-            
+        # Combining Brand and the new "Perfume" header
+        df['Full_Name'] = df['Brand'].astype(str) + " " + df['Perfume'].astype(str)
+        return df['Full_Name'].tolist()
     except Exception as e:
-        st.error(f"🚨 Could not find 'perfume.csv'. Error: {e}")
+        st.error(f"🚨 Error loading CSV: {e}")
         st.stop()
 
 cologne_list = load_cologne_list()
