@@ -20,12 +20,9 @@ except KeyError:
     st.error("🚨 API Keys missing! Add GEMINI_KEY and SERPAPI_KEY to Streamlit Secrets.")
     st.stop()
 
-# --- 3. THE SMART PRICE SCRAPER ---
-# We added a "search_sample" switch to this function!
+# --- 3. THE PRICE SCRAPER ---
 def get_price_comparison(cologne_name, search_sample=False):
-    # If they want a sample, we add keywords to the Google search
     query = f"{cologne_name} sample decant" if search_sample else cologne_name
-    
     url = "https://serpapi.com/search"
     params = {
         "engine": "google_shopping",
@@ -34,9 +31,7 @@ def get_price_comparison(cologne_name, search_sample=False):
         "gl": "us",
         "api_key": serpapi_key
     }
-    
     fallback_link = f"https://www.google.com/search?tbm=shop&q={query.replace(' ', '+')}"
-    
     try:
         response = requests.get(url, params=params)
         data = response.json()
@@ -52,7 +47,6 @@ def get_price_comparison(cologne_name, search_sample=False):
                 return deals
     except Exception:
         pass
-        
     return [{"price": "Check Price", "store": "Google Shopping", "link": fallback_link}]
 
 # --- 4. LOAD DATABASE ---
@@ -73,9 +67,20 @@ def load_cologne_data():
 
 cologne_info_list = load_cologne_data()
 
-# --- 5. THE APP LAYOUT (TABS) ---
-st.title("Cologne Search AI 💨")
-st.write("Find your signature scent and the best live prices.")
+# --- 5. THE BRAND HEADER & TABS ---
+
+# THIS IS THE NEW LOGO SECTION!
+head_col1, head_col2 = st.columns([1, 4]) # Gives the logo 1 part of the screen, and the title 4 parts
+
+with head_col1:
+    # A temporary sleek logo from the web. You can change this URL later!
+    st.image("https://cdn-icons-png.flaticon.com/512/1005/1005749.png", width=100)
+
+with head_col2:
+    st.title("Cologne Search AI 💨")
+    st.write("Find your signature scent and the best live prices.")
+
+st.divider()
 
 tab1, tab2, tab3 = st.tabs(["🎯 The AI Quiz", "🔍 Direct Search", "📚 Fragrance 101"])
 
@@ -83,7 +88,6 @@ tab1, tab2, tab3 = st.tabs(["🎯 The AI Quiz", "🔍 Direct Search", "📚 Frag
 # TAB 1: THE STEP-BY-STEP QUIZ
 # ==========================================
 with tab1:
-    # Added the "Size" question to the quiz
     questions = [
         {"key": "Gender", "title": "Who is this fragrance for?", "type": "radio", "options": ["Men", "Women"]},
         {"key": "Season", "title": "What season are you shopping for?", "type": "select", "options": ["Summer", "Winter", "Spring", "Fall", "Year-round"]},
@@ -157,7 +161,6 @@ with tab1:
                 st.info(description)
                 
                 with st.spinner("Finding the best deals..."):
-                    # Check if they asked for a sample, and tell the scraper!
                     wants_sample = st.session_state.preferences.get("Size") == "Sample / Decant"
                     deals = get_price_comparison(exact_name, search_sample=wants_sample)
                     
@@ -190,7 +193,6 @@ with tab2:
     
     search_selection = st.selectbox("Search your database:", cologne_info_list)
     
-    # NEW: Toggle for Sample vs Full Bottle
     bottle_size = st.radio("What are you looking for?", ["Full Bottle", "Sample / Decant"], horizontal=True)
     
     if st.button("Check Live Prices 🛒"):
