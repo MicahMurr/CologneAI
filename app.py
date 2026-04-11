@@ -1,19 +1,44 @@
 import streamlit as st
 from google import genai
 import pandas as pd
+import requests
 
 # --- 1. PAGE SETUP ---
 st.set_page_config(page_title="Cologne Finder", page_icon="💨")
 
-# --- 2. CONNECT TO GOOGLE ---
+# --- 2. CONNECT TO GOOGLE & SERPAPI ---
 try:
     gemini_key = st.secrets["GEMINI_KEY"]
+    serpapi_key = st.secrets["SERPAPI_KEY"]
     client = genai.Client(api_key=gemini_key)
 except KeyError:
-    st.error("🚨 API Key missing! Please add GEMINI_KEY to Streamlit Secrets.")
+    st.error("🚨 API Keys missing! Please make sure both GEMINI_KEY and SERPAPI_KEY are in Streamlit Secrets.")
     st.stop()
 
-# --- 3. LOAD YOUR DATABASE ---
+# --- 3. THE SCRAPER TOOL ---
+def get_cheapest_price(cologne_name):
+    url = "https://serpapi.com/search"
+    params = {
+        "engine": "google_shopping",
+        "q": cologne_name,
+        "hl": "en",
+        "gl": "us",
+        "api_key": serpapi_key
+    }
+    try:
+        response = requests.get(url, params=params)
+        data = response.json()
+        if "shopping_results" in data and len(data["shopping_results"]) > 0:
+            first_result = data["shopping_results"][0]
+            price = first_result.get("price", "N/A")
+            link = first_result.get("link", "#")
+            source = first_result.get("source", "N/A")
+            return price, source, link
+    except Exception:
+        pass
+    return "No price found", "N/A", "#"
+
+# --- 4. LOAD YOUR DATABASE ---
 @st.cache_data
 def load_cologne_list():
     try:
@@ -26,27 +51,19 @@ def load_cologne_list():
 
 cologne_list = load_cologne_list()
 
-# --- 4. THE QUIZ UI ---
+# --- 5. THE QUIZ UI ---
 st.title("Find Your Signature Scent 💨")
 st.write("Take the quiz below, and our AI Sommelier will find your perfect match.")
 
 st.subheader("Tell us what you are looking for:")
-
-# The Inputs (Vibe is text, Projection is a dropdown)
 season = st.selectbox("What season is this for?", ["Summer", "Winter", "Spring", "Fall", "Year-round"])
-
-# CHANGED: Vibe is now a free-form text box!
 vibe = st.text_input("What is the exact vibe?", placeholder="e.g. Dark and mysterious, fresh out the shower, office boss...")
-
 longevity = st.selectbox("How long should it last? (Longevity)", ["Moderate (4-6 hours)", "Long-lasting (8+ hours)", "Eternal (12+ hours)"])
-
-# CHANGED: Projection is back to a clean dropdown list!
 projection = st.selectbox("How loud should it be? (Projection)", ["Intimate (Skin scent)", "Moderate (Arm's length)", "Strong (Leaves a trail)", "Beast Mode (Fills the room)"])
 
-# --- 5. THE SEARCH ENGINE ---
+# --- 6. THE SEARCH ENGINE ---
 if st.button("Find My Signature Scent"):
     
-    # We feed all 4 of their choices directly into the AI's brain
     prompt = f"""
     You are an expert fragrance sommelier. 
     I need a specific cologne recommendation from you based on these exact preferences:
@@ -58,19 +75,42 @@ if st.button("Find My Signature Scent"):
     Here is the ONLY list of colognes you are allowed to choose from: 
     {cologne_list}
     
-    Please pick exactly ONE fragrance from that list that best matches ALL of these criteria. 
-    Tell me the name of the cologne clearly, and write a short, exciting paragraph explaining why the notes fit the vibe, and how its performance matches their longevity and projection requests.
+    CRITICAL INSTRUCTION: You must pick exactly ONE fragrance. 
+    Put the EXACT NAME of the cologne on the VERY FIRST LINE of your response by itself. Do not write anything else on line 1.
+    Then, starting on line 2, write a short, exciting paragraph explaining why the notes fit the vibe and performance requests.
     """
     
     with st.spinner("Consulting the fragrance experts..."):
         try:
+            # 1. Ask Gemini
             ai_response = client.models.generate_content(
                 model='gemini-2.5-flash',
                 contents=prompt
             )
             
-            st.success("We found your match!")
-            st.write(ai_response.text)
+            # 2. Slice the response to get the name for the scraper
+            response_text = ai_response.text.strip()
+            lines = response_text.split("\n")
+            
+            # The first line is the name, the rest is the description
+            exact_cologne_name = lines[0].strip().replace("*", "") # Removes any bolding stars
+            description = "\n".join(lines[1:]).strip()
+            
+            st.success(f"We found your match: **{exact_cologne_name}**!")
+            st.write(description)
             
         except Exception as e:
             st.error(f"Something went wrong with the AI: {e}")
+            st.stop()
+            
+    # 3. Trigger the scraper while the user is reading the review!
+    with st.spinner("Hunting for the best live price..."):
+        price, store, link = get_cheapest_price(exact_cologne_name)
+        
+        # 4. Show the final shopping card
+        st.subheader("🛒 Live Pricing")
+        if price != "No price found":
+            st.write(f"**Best Price:** {price} at {store}")
+            st.markdown(f"[**Click here to buy it**]({link})", unsafe_allow_html=True)
+        else:
+            st.write("Could not find a reliable live price on Google Shopping. You might have to hunt for this one!")
